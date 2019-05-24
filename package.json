@@ -1,0 +1,31 @@
+{
+  "name": "agent-based-process-orchestration-iot",
+  "version": "0.0.1",
+  "description": "Example implementation of agent-/process-oriented IoT orchestration",
+  "main": "orchestrator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TimKam/agent-based-process-orchestration-iot.git"
+  },
+  "keywords": [
+    "agents",
+    "business",
+    "process",
+    "management",
+    "IoT"
+  ],
+  "author": "Timotheus Kampik",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TimKam/agent-based-process-orchestration-iot/issues"
+  },
+  "homepage": "https://github.com/TimKam/agent-based-process-orchestration-iot#readme",
+  "dependencies": {
+    "js-son-agent": "0.0.5",
+    "omi-odf": "^0.1.3",
+    "request": "^2.88.0"
+  }
+}
