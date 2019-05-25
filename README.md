@@ -32,9 +32,7 @@ Note that in addition, the example interacts with a set of cloud applications:
 
 * [Signavio Workflow Accelerator](https://www.signavio.com/products/workflow-accelerator/), a *low code* business process execution engine;
 
-* [Google Spreadsheets](https://docs.google.com/spreadsheets/), which is used as a low-tech database;
-
-* [Google Cloud Functions](https://cloud.google.com/functions) to host agents and messaging interfaces.
+* [Google Spreadsheets](https://docs.google.com/spreadsheets/), which is used as a low-tech database.
 
 The code/artifacts that have been deployed to these services are available in the [artifacts](./artifacts) folder of this repository.
 
