@@ -70,7 +70,7 @@ omiClient.once('ready', () => {
         omiClient.write('things/iotMockDevice', ep2)
         omiClient.write('things/iotMockDevice', ep3)
         requestData.forEach(data => persist(data))
-        requestData = []
+        if (requestData.length > 3) requestData = []
     }, 2600)
 })
 

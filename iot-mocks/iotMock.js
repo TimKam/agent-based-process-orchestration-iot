@@ -45,10 +45,10 @@ omiClient.once('ready', () => {
         }
 
         // write latest "measured" (somewhat pseudo-randomly generated) humidity level
-        omiClient.write(path, humidity, 10)
+        omiClient.write(path, ep1, humidity)
         console.log('write', path, `${ep1}: ${humidity}`, `${ep2}: ${temperature}`, `${ep3}: ${healthLevel}`)
          // write latest "measured" (somewhat pseudo-randomly generated) temperature level
-        omiClient.write(path, temperature, 20)
+        omiClient.write(path, ep2, temperature)
         // write latest "measured" production line health indicator (somewhat pseudo-randomly generated)
         omiClient.write(path, ep3, healthLevel)
     }, 2500)

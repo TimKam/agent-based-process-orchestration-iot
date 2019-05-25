@@ -30,7 +30,8 @@ The the example requires the following software to be installed on your local ma
 
 Note that in addition, the example interacts with a set of cloud applications:
 
-* [Signavio Workflow Accelerator](https://www.signavio.com/products/workflow-accelerator/), a *low code* business process execution engine;
+* [Signavio Workflow Accelerator](https://www.signavio.com/products/workflow-accelerator/), a *low code* business 
+process execution engine;
 
 * [Google Spreadsheets](https://docs.google.com/spreadsheets/), which is used as a low-tech database.
 
@@ -102,8 +103,8 @@ To run the example, proceed as follows:
 
 ## Authors
 
-* Timotheus Kampik - [@TimKam]
-* Avleen Malhi
+* [Timotheus Kampik](https://scholar.google.se/citations?user=F8Z9QywAAAAJ) - [@TimKam](https://github.com/TimKam/)
+* [Avleen Malhi](https://scholar.google.se/citations?user=bMA1WcMAAAAJ)
 
 ## Acknowledgements
 This work was partially supported by the Wallenberg AI, Autonomous Systems and Software Program (WASP) funded by the Knut and Alice Wallenberg Foundation and partially funded by the German Federal Ministry of Education and Research (BMBF) within the Framework Concept ”Industrie 4.0 – Kollaborationen in dynamischen Wertschöpfungsnetzwerken (InKoWe)”.
