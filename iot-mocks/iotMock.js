@@ -40,7 +40,7 @@ omiClient.once('ready', () => {
                 healthLevel = healthLevels[healthLevels.indexOf(healthLevel) + 1]
             } else {
                 if (healthLevels.indexOf(healthLevel) > 0)
-                healthLevel = healthLevels[healthLevels.indexOf(healthLevel) + 1]
+                healthLevel = healthLevels[healthLevels.indexOf(healthLevel) - 1]
             }
         }
 

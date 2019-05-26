@@ -50,11 +50,12 @@ To run the example, proceed as follows:
 
     a. Get the OM-I server's docker image:
 
-    ´´´
+    ```
     docker pull aaltoasia/o-mi
-    ´´´
+    ```
 
     b. Run the Docker image and expose it via your machine's IP address:
+
     ```
     docker run -d --net=host -p 127.0.0.1:8080:8080  aaltoasia/o-mi
     ```
@@ -68,6 +69,7 @@ To run the example, proceed as follows:
     Copy the container ID. We will refer to it in the instructions below as ``<container ID>``.
 
     d. Login to the container via the command line:
+
     ```
     docker exec -it <container ID> bash
     ```

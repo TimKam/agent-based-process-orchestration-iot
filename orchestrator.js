@@ -1,6 +1,11 @@
 /* Entry point and orchestration script */
-const { exec } = require('child_process')
+const exec = require('child_process').exec
 const request = require('request')
+
+const args = process.argv.slice(2)
+const omiNodeAddress = args[0]
+
+const path = process.cwd()
 
 /* Trigger bidding workflow with specified parameters */
 const startWorkflow = (temperature, humidity) => {
@@ -45,36 +50,46 @@ const startWorkflow = (temperature, humidity) => {
     return request(options, (error, response, body) => {
     if (error) throw new Error(error)
 
-        console.log(body)
+        console.log(`Workflow started: ${JSON.stringify(body)}`)
         return body
     })
 }
-
-/* Start O-MI server */
-const startOmiServer = () => {
-    exec('docker pull aaltoasia/o-mi', (err, stdout, stderr) => {
-        if (err) {
-            console.log(err)
-        }  else {
-            console.log('Pulled docker image')
-            exec('docker run aaltoasia/o-mi', (err, stdout, stderr) => {
-                if (err) {
-                    console.log(`${err}; Make sure you have a docker deamon running!`)
-                }  else {
-                    console.log('Started O-MI server')
-                }
-            })
-        }
-    })
-}
-
 
 startWorkflow(
     Math.random() * 20 + 10,
     Math.random() * 20 + 5
 )
 
-startOmiServer()
+/* Start agents and IoT mocks */
+const startIotMock = () => {
+    exec(`node ${path}/iot-mocks/iotMock.js ${omiNodeAddress}`, (err) => {
+        if (err) {
+            console.log(err)
+        }  else {
+            console.log('Started IoT mock service!')
+        }
+    })
+}
+const startIotAgent = () => {
+    exec(`node ${path}/agents/iotAgent.js ${omiNodeAddress}`, (err) => {
+        if (err) {
+            console.log(err)
+        }
+    })
+}
 
+const startManagerAgent = () => {
+    exec(`node ${path}/agents/managerAgent.js ${omiNodeAddress}`, (err) => {
+        if (err) {
+            console.log(err)
+        }
+    })
+}
 
+console.log('Starting IoT mock service...')
+startIotMock()
+console.log('Starting IoT agent service...')
+startIotAgent()
+console.log('Starting manager agent service...')
+startManagerAgent()
 
