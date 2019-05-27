@@ -7,6 +7,8 @@ const persistanceUrl = 'https://script.google.com/macros/s/AKfycbyAVkrrCEbP221b8
 
 const args = process.argv.slice(2)
 
+const caseId = args[1]
+
 const host = `ws://${args[0]}:8080`
 const name = 'managerAgent'
 const path = `agents/${name}`
@@ -15,7 +17,7 @@ const omiClient = new OmiClient(host)
 const stopProcessPropValue = 'stop_process'
 
 const persist = data => {
-    request.get(`${persistanceUrl}?Type=${data.Type}&Property=${data.Property}&Value=${data.Value}`)
+    request.get(`${persistanceUrl}?Type=${data.Type}&Property=${data.Property}&Value=${data.Value}&Caseid=${data.Caseid}`)
 }
 
 // Cognitive agent
@@ -80,7 +82,8 @@ const updateState = actions => {
         persist({
             Property: `${path}/${managingProperty}`,
             Value: stopProcessPropValue,
-            Type: 'string'
+            Type: 'string',
+            Caseid: caseId
         })
       }
     })

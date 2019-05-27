@@ -5,11 +5,13 @@ const persistanceUrl = 'https://script.google.com/macros/s/AKfycbyAVkrrCEbP221b8
 
 const args = process.argv.slice(2)
 
+const caseId = args[1]
+
 const host = `ws://${args[0]}:8080`
 const omiClient = new OmiClient(host)
 
 const persist = data => {
-    request.get(`${persistanceUrl}?Type=${data.Type}&Property=${data.Property}&Value=${data.Value}`)
+    request.get(`${persistanceUrl}?Type=${data.Type}&Property=${data.Property}&Value=${data.Value}&Caseid=${data.Caseid}`)
 }
 
 
@@ -38,7 +40,8 @@ omiClient.once('ready', () => {
             requestData.push({
                 Property: ep1,
                 Value: data,
-                Type: opts.type || 'string'
+                Type: opts.type || 'string',
+                Caseid: caseId
             })
         }
     })
@@ -49,7 +52,8 @@ omiClient.once('ready', () => {
             requestData.push({
                 Property: ep2,
                 Value: data,
-                Type: opts.type || 'string'
+                Type: opts.type || 'string',
+                Caseid: caseId
             })
         }
     })
@@ -60,7 +64,8 @@ omiClient.once('ready', () => {
             requestData.push({
                 Property: ep3,
                 Value: data,
-                Type: opts.type || 'string'
+                Type: opts.type || 'string',
+                Caseid: caseId
             })
         }
     })

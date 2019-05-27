@@ -8,7 +8,7 @@ const omiNodeAddress = args[0]
 const path = process.cwd()
 
 /* Trigger bidding workflow with specified parameters */
-const startWorkflow = (temperature, humidity) => {
+const startWorkflow = (temperature, humidity, callback) => {
     const options = { method: 'POST',
         url: 'https://workflow.signavio.com/api/v1/public/cases',
         headers: 
@@ -50,15 +50,11 @@ const startWorkflow = (temperature, humidity) => {
     return request(options, (error, response, body) => {
     if (error) throw new Error(error)
 
-        console.log(`Workflow started: ${JSON.stringify(body)}`)
+        console.log(`Workflow started: ${JSON.stringify(body.id)}`)
+        callback(body.id)
         return body
     })
 }
-
-startWorkflow(
-    Math.random() * 20 + 10,
-    Math.random() * 20 + 5
-)
 
 /* Start agents and IoT mocks */
 const startIotMock = () => {
@@ -70,26 +66,34 @@ const startIotMock = () => {
         }
     })
 }
-const startIotAgent = () => {
-    exec(`node ${path}/agents/iotAgent.js ${omiNodeAddress}`, (err) => {
+const startIotAgent = caseId => {
+    exec(`node ${path}/agents/iotAgent.js ${omiNodeAddress} ${caseId}`, (err) => {
         if (err) {
             console.log(err)
         }
     })
 }
 
-const startManagerAgent = () => {
-    exec(`node ${path}/agents/managerAgent.js ${omiNodeAddress}`, (err) => {
+const startManagerAgent = caseId => {
+    exec(`node ${path}/agents/managerAgent.js ${omiNodeAddress} ${caseId}`, (err) => {
         if (err) {
             console.log(err)
         }
     })
 }
 
-console.log('Starting IoT mock service...')
-startIotMock()
-console.log('Starting IoT agent service...')
-startIotAgent()
-console.log('Starting manager agent service...')
-startManagerAgent()
+const callback = caseId => {
+    console.log('Starting IoT mock service...')
+    startIotMock()
+    console.log('Starting IoT agent service...')
+    startIotAgent(caseId)
+    console.log('Starting manager agent service...')
+    startManagerAgent(caseId)
+}
+
+startWorkflow(
+    Math.random() * 20 + 10,
+    Math.random() * 20 + 5,
+    callback
+)
 
