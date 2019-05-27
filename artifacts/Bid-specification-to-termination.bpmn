@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions targetNamespace="http://effektif.com/bpmn20" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:e="http://effektif.com/bpmn20" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <process name="Bid-specification-to-termination" id="_5ce46813d1dfff36e89f2177">
+    <extensionElements>
+      <e:trigger type="publicForm">
+        <documentation>Trigger new bid with specified meta data</documentation>
+        <e:form>
+          <e:field id="prwti6csf12ra1nc96" readonly="false" required="true" expression="prwti6hokl53vs533p"/>
+          <e:field id="prwtiuluaj23rppvpp" readonly="false" required="true" expression="prwtiudv3w3unixmkz"/>
+        </e:form>
+      </e:trigger>
+      <e:form/>
+      <e:caseCreatedMessage>Bid meta data successfully specified.</e:caseCreatedMessage>
+      <e:variable id="prwti6hokl53vs533p" name="Average temperature ">
+        <documentation>Average temperature over last 30 days </documentation>
+        <e:type name="number" minValue="-20.0" maxValue="60.0"/>
+      </e:variable>
+      <e:variable id="prwtiudv3w3unixmkz" name="Moisture level">
+        <documentation>Moisture level</documentation>
+        <e:type name="number" minValue="0.0" maxValue="100.0"/>
+      </e:variable>
+      <e:variable id="ps5x4g54bscc3srf6d" name="Maximal Bid Size">
+        <e:type name="number"/>
+      </e:variable>
+      <e:variable id="ps5xojcnnocf7qhk1q" name="Moisture Content">
+        <e:type name="number"/>
+      </e:variable>
+      <e:variable id="ps5yy6g5bjqjw37lzp" name="Approved">
+        <e:type name="boolean"/>
+      </e:variable>
+    </extensionElements>
+    <exclusiveGateway id="pryxifaam8icgw5ew8" e:defaultTransitionId="pryxjemfcudt8fk9k6" name="Approval granted?" e:decisionType="auto"/>
+    <intermediateCatchEvent id="ps60venxgk7a5oafkt" name="Wait one minute">
+      <extensionElements>
+        <e:waitUntil type="after" duration="1" durationUnit="minutes"/>
+      </extensionElements>
+      <timerEventDefinition/>
+    </intermediateCatchEvent>
+    <scriptTask id="pryxfpnwt714y1wdtu" name="Obtain environmental aggregate data">
+      <extensionElements>
+        <e:script><![CDATA[const url = 'https://spreadsheets.google.com/feeds/cells/1XsFy1Cy3uId4Er0ufz7qfZXdh1XQM-xAX3Zlumg9XGQ/1/public/values?alt=json'
+
+request.get(url, (err, response, body) => {
+  if (err) return console.log(err)
+  const data = JSON.parse(body)
+  console.log(data.feed.entry)
+  let latestTemperature
+  let latestMoisture
+  data.feed.entry.forEach((entry, index) => {
+    if (entry.content.$t.includes('Temperature')) {
+      latestTemperature = data.feed.entry[index + 2].content.$t
+    }
+    if (entry.content.$t.includes('Humidity')) {
+      latestMoisture = data.feed.entry[index + 2].content.$t
+    }
+  })
+  if (latestMoisture) {
+    averageTemperature = (averageTemperature + latestTemperature) / 2
+  }
+  if (latestTemperature) {
+    moistureLevel = (moistureLevel + latestMoisture) / 2
+  }
+})
+]]></e:script>
+        <e:mapping scriptVariableName="moistureLevel" workflowVariableId="prwtiudv3w3unixmkz"/>
+        <e:mapping scriptVariableName="averageTemperature" workflowVariableId="prwti6hokl53vs533p"/>
+        <e:mapping scriptVariableName="_case" workflowVariableId="case"/>
+      </extensionElements>
+    </scriptTask>
+    <scriptTask id="pryxg2txzr7l1kb9no" name="Determine bid spec">
+      <extensionElements>
+        <e:script><![CDATA[const persistanceUrl = 'https://script.google.com/macros/s/AKfycbyAVkrrCEbP221b8H2NyfMBQn-dv_rgqUx5HR3F2wqx86yCj1U/exec'
+const persist = data => {
+  request.get(`${persistanceUrl}?Type=int&Property=WorkflowEngine/MoistureContent&Value=${data}&Caseid=${_case.id}`)
+}
+
+moistureContent = 11
+if (moistureLevel > 20) {
+  moistureContent += 10
+}
+
+if (averageTemperature > 30) {
+  moistureContent += 10
+}
+persist(moistureContent)
+]]></e:script>
+        <e:mapping scriptVariableName="moistureLevel" workflowVariableId="prwtiudv3w3unixmkz"/>
+        <e:mapping scriptVariableName="averageTemperature" workflowVariableId="prwti6hokl53vs533p"/>
+        <e:mapping scriptVariableName="_case" workflowVariableId="case"/>
+        <e:mapping scriptVariableName="moistureContent" workflowVariableId="ps5xojcnnocf7qhk1q"/>
+      </extensionElements>
+    </scriptTask>
+    <scriptTask id="pryxi3ixe5e25z5ui1" name="Get     managing agent&#039;s approval">
+      <extensionElements>
+        <e:script><![CDATA[const url = 'https://spreadsheets.google.com/feeds/cells/1XsFy1Cy3uId4Er0ufz7qfZXdh1XQM-xAX3Zlumg9XGQ/1/public/values?alt=json'
+
+request.get(url, (err, response, body) => {
+  if (err) return console.log(err)
+  const data = JSON.parse(body)
+  console.log(data.feed.entry)
+  approved = !data.feed.entry.some((entry, index) =>
+    entry.content.$t.includes(_case.id) &&
+    data.feed.entry[index - 1].content.$t.includes('stop_process'))
+})
+]]></e:script>
+        <e:mapping scriptVariableName="approved" workflowVariableId="ps5yy6g5bjqjw37lzp"/>
+        <e:mapping scriptVariableName="_case" workflowVariableId="case"/>
+      </extensionElements>
+    </scriptTask>
+    <scriptTask id="ps4s1cj5czqdwwkklw" name="Specify bid framework">
+      <extensionElements>
+        <e:script><![CDATA[const persistanceUrl = 'https://script.google.com/macros/s/AKfycbyAVkrrCEbP221b8H2NyfMBQn-dv_rgqUx5HR3F2wqx86yCj1U/exec'
+const persist = data => {
+  request.get(`${persistanceUrl}?Type=int&Property=WorkflowEngine/MaxBidSize&Value=${data}&Caseid=${_case.id}`)
+}
+
+if (Math.random() < 0.2) {
+  maximalBidSize = Math.round(Math.random() * 1000)
+  persist(maximalBidSize)
+}
+]]></e:script>
+        <e:mapping scriptVariableName="maximalBidSize" workflowVariableId="ps5x4g54bscc3srf6d"/>
+        <e:mapping scriptVariableName="_case" workflowVariableId="case"/>
+      </extensionElements>
+    </scriptTask>
+    <scriptTask id="ps4s3hcvlbqgp8ok6i" name="Place bid">
+      <extensionElements>
+        <e:script><![CDATA[const genRandInt = max => Math.floor(Math.random() * Math.floor(max))
+
+const persistanceUrl = 'https://script.google.com/macros/s/AKfycbyAVkrrCEbP221b8H2NyfMBQn-dv_rgqUx5HR3F2wqx86yCj1U/exec'
+const persist = data => {
+  request.get(`${persistanceUrl}?Type=int&Property=WorkflowEngine/ProcuredParts&Value=${data}&Caseid=${_case.id}`)
+}
+const numberProcured = maximalBidSize ? genRandInt(maximalBidSize) : genRandInt(5000)
+
+persist(numberProcured)
+]]></e:script>
+        <e:mapping scriptVariableName="maximalBidSize" workflowVariableId="ps5x4g54bscc3srf6d"/>
+        <e:mapping scriptVariableName="_case" workflowVariableId="case"/>
+      </extensionElements>
+    </scriptTask>
+    <sequenceFlow id="pryxg2p3i22fb84180" sourceRef="pryxfpnwt714y1wdtu" targetRef="pryxg2txzr7l1kb9no"/>
+    <sequenceFlow id="pryxifet6umtjluihr" sourceRef="pryxi3ixe5e25z5ui1" targetRef="pryxifaam8icgw5ew8"/>
+    <sequenceFlow id="pryxjemfcudt8fk9k6" sourceRef="pryxifaam8icgw5ew8" targetRef="pryxje2beoopehavzd">
+      <extensionElements>
+        <e:condition>
+          <e:and/>
+        </e:condition>
+      </extensionElements>
+    </sequenceFlow>
+    <sequenceFlow id="ps4s1knma5pv4fq0lz" sourceRef="ps4s1cj5czqdwwkklw" targetRef="pryxfpnwt714y1wdtu"/>
+    <sequenceFlow id="ps4s3oqbyty5ywbfya" sourceRef="pryxg2txzr7l1kb9no" targetRef="ps4s3hcvlbqgp8ok6i"/>
+    <sequenceFlow id="ps4s3r2m0ob8ci73at" sourceRef="ps4s3hcvlbqgp8ok6i" targetRef="pryxi3ixe5e25z5ui1"/>
+    <sequenceFlow id="ps60vipd03hz9xdoo8" sourceRef="pryxifaam8icgw5ew8" targetRef="ps60venxgk7a5oafkt">
+      <extensionElements>
+        <e:condition>
+          <e:and/>
+        </e:condition>
+      </extensionElements>
+    </sequenceFlow>
+    <sequenceFlow id="ps60vmicx42n88sqdo" sourceRef="ps60venxgk7a5oafkt" targetRef="pryxfpnwt714y1wdtu"/>
+    <endEvent id="pryxje2beoopehavzd" name="Bidding terminated"/>
+  </process>
+  <bpmndi:BPMNDiagram name="Bid-specification-to-termination">
+    <bpmndi:BPMNPlane bpmnElement="_5ce46813d1dfff36e89f2177">
+      <bpmndi:BPMNShape id="pryxfpb9ythdg3kfl0" bpmnElement="pryxfpnwt714y1wdtu">
+        <omgdc:Bounds height="80.0" width="100.0" x="200.0" y="50.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="pryxg2oskj0l54yjmb" bpmnElement="pryxg2txzr7l1kb9no">
+        <omgdc:Bounds height="80.0" width="100.0" x="350.0" y="50.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="pryxi3cmxcedksl0oa" bpmnElement="pryxi3ixe5e25z5ui1">
+        <omgdc:Bounds height="80.0" width="100.0" x="680.0" y="50.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="pryxifs950ivutw4ag" bpmnElement="pryxifaam8icgw5ew8">
+        <omgdc:Bounds height="40.0" width="40.0" x="860.0" y="70.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="pryxjesrdsiweuo0o9" bpmnElement="pryxje2beoopehavzd">
+        <omgdc:Bounds height="28.0" width="28.0" x="1025.0" y="76.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ps4s1ca747ggeml1op" bpmnElement="ps4s1cj5czqdwwkklw">
+        <omgdc:Bounds height="80.0" width="100.0" x="50.0" y="50.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ps4s3hqqorgtwnj4gs" bpmnElement="ps4s3hcvlbqgp8ok6i">
+        <omgdc:Bounds height="80.0" width="100.0" x="515.0" y="50.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ps60ve7lcw6yf0yczu" bpmnElement="ps60venxgk7a5oafkt">
+        <omgdc:Bounds height="30.0" width="30.0" x="772.0" y="176.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="shape-pryxg2p3i22fb84180" bpmnElement="pryxg2p3i22fb84180">
+        <omgdi:waypoint x="250.0" y="90.0"/>
+        <omgdi:waypoint x="400.0" y="90.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="shape-pryxifet6umtjluihr" bpmnElement="pryxifet6umtjluihr">
+        <omgdi:waypoint x="730.0" y="90.0"/>
+        <omgdi:waypoint x="880.0" y="90.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="shape-pryxjemfcudt8fk9k6" bpmnElement="pryxjemfcudt8fk9k6">
+        <omgdi:waypoint x="880.0" y="90.0"/>
+        <omgdi:waypoint x="1039.0" y="90.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="shape-ps4s1knma5pv4fq0lz" bpmnElement="ps4s1knma5pv4fq0lz">
+        <omgdi:waypoint x="100.0" y="90.0"/>
+        <omgdi:waypoint x="250.0" y="90.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="shape-ps4s3oqbyty5ywbfya" bpmnElement="ps4s3oqbyty5ywbfya">
+        <omgdi:waypoint x="400.0" y="90.0"/>
+        <omgdi:waypoint x="565.0" y="90.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="shape-ps4s3r2m0ob8ci73at" bpmnElement="ps4s3r2m0ob8ci73at">
+        <omgdi:waypoint x="565.0" y="90.0"/>
+        <omgdi:waypoint x="730.0" y="90.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="shape-ps60vipd03hz9xdoo8" bpmnElement="ps60vipd03hz9xdoo8">
+        <omgdi:waypoint x="880.0" y="90.0"/>
+        <omgdi:waypoint x="880.0" y="191.0"/>
+        <omgdi:waypoint x="787.0" y="191.0"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="shape-ps60vmicx42n88sqdo" bpmnElement="ps60vmicx42n88sqdo">
+        <omgdi:waypoint x="787.0" y="191.0"/>
+        <omgdi:waypoint x="250.0" y="191.0"/>
+        <omgdi:waypoint x="250.0" y="90.0"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
