@@ -104,7 +104,48 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             Plotly.newPlot('health-level-div', [healthLevelTrace], healthLevelLayout)
 
-            const caseData = new Array(5).fill(0).map((_, index) => {
+            const caseData = []
+            data.feed.entry.forEach((entry, index) => {
+                const caseIds = []
+                if(entry.content.$t.includes('WorkflowEngine')) {
+                    const caseId = data.feed.entry[index + 3].content.$t
+                    if (!caseIds.includes(caseId)) {
+                        console.log(caseId)
+                        caseIds.push(caseId)
+                        const bids = data.feed.entry.filter((entry2, index2) =>
+                            entry2.content.$t.includes('WorkflowEngine/ProcuredParts') &&
+                            data.feed.entry[index2 + 3].content.$t === caseId
+                        ).length
+                        const partsArray = []
+                        data.feed.entry.forEach((entry2, index2) => {
+                            if(
+                                entry2.content.$t.includes('WorkflowEngine/ProcuredParts') &&
+                                data.feed.entry[index2 + 3].content.$t === caseId
+                            ) {
+                                partsArray.push(parseInt(data.feed.entry[index2 + 2].content.$t))
+                            }
+                        })
+                        const parts = partsArray.reduce((partial_sum, a) => partial_sum + a, 0)
+
+                        const humanAdjustment = data.feed.entry.some((entry2, index2) =>
+                            entry2.content.$t.includes('WorkflowEngine/MaxBidSize') &&
+                            data.feed.entry[index2 + 3].content.$t === caseId)
+                            
+                        const managementCancellation = data.feed.entry.some((entry2, index2) =>
+                            entry2.content.$t.includes('stop_process') &&
+                            data.feed.entry[index2 + 1].content.$t === caseId)
+                        caseData.push(`
+                            <td>${caseId}</td>
+                            <td>${bids}</td>
+                            <td>${parts}</td>
+                            <td>${humanAdjustment}</td>
+                            <td>${managementCancellation}</td>
+                        `)
+                    }
+                }
+            })
+
+            const caseDataOld = new Array(5).fill(0).map((_, index) => {
                 const bids = generateRandomInt(2, 20)
                 const parts = bids * generateRandomInt(20, 300)
                 const humanAdjustment = Math.random() < 0.5 ? 'Yes' : 'No'
